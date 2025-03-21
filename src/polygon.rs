@@ -104,21 +104,25 @@ impl<Scalar: geo_types::CoordFloat> PolygonMeshBuilder<Scalar> {
     fn flat_line_string_coords_2(
         line_string_coords: impl Iterator<Item = impl CoordTrait<T = Scalar>>,
         vertices: &mut Vec<Scalar>,
-    ) {
-        for coord in line_string_coords {
-            vertices.push(coord.x());
-            vertices.push(coord.y());
-        }
+    ) {  
+        let mut peek_iter = line_string_coords.peekable();
+        while peek_iter.peek().is_some() {
+            let coord = peek_iter.next().unwrap();
+            if peek_iter.peek().is_some() {
+                vertices.push(coord.x());
+                vertices.push(coord.y());
+            }
+        }      
     }
 }
 
 fn polygon_coords_count<P: PolygonTrait>(polygon: &P) -> usize {
     polygon
         .exterior()
-        .map_or(0, |exterior| exterior.num_coords())
+        .map_or(0, |exterior| exterior.num_coords() - 1)
         + polygon
             .interiors()
-            .map(|interior| interior.num_coords())
+            .map(|interior| interior.num_coords() - 1)
             .sum::<usize>()
 }
 
